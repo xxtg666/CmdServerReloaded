@@ -166,7 +166,7 @@ class Request(BaseHTTPRequestHandler):
                 try:
                     messageid=send_message(int(v[0]),v[1],unquote(v[2]))
                     buf=f"{ireq}Done"
-                    for _ in range(40):
+                    for _ in range(20):
                         time.sleep(0.25)
                         try:
                             buf = f'''{base64decode(fallbacks[messageid])}'''.replace("\n","<br>")

