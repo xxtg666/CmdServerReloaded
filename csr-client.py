@@ -9,10 +9,15 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import time
 import base64
 import getpass
+
+
 def base64encode(string):
     return base64.b64encode(string.encode()).decode()
+
+
 def base64decode(string):
     return base64.b64decode(string.encode()).decode()
+
 
 s = socket.socket()
 start_time = time.time()  # 起始运行时间
@@ -59,11 +64,16 @@ RunningTime - {time.time() - start_time}'''.replace("\n", "<br>")
 
 
 def start_http_server():
-    HTTPServer(('localhost', int(config["local-port"])), Request).serve_forever()
+    HTTPServer(('localhost',
+                int(config["local-port"])),
+               Request).serve_forever()
+
 
 Thread(target=start_http_server).start()
 
 # 远程操作函数
+
+
 def e_download(url):
     urllib.request.urlretrieve(url, os.path.basename(url))
 
@@ -95,6 +105,8 @@ def execute(mode, line):
         return "Done"
     elif mode == "username":
         return config["client-name"]
+
+
 def execute_and_fallbackdata(data):
     res = execute(data[0], base64decode(data[1]))
     s2 = socket.socket()
@@ -102,14 +114,16 @@ def execute_and_fallbackdata(data):
     s2.send(f'''{data[2]}|{base64encode(res)}'''.encode("UTF-8"))
     print(base64encode(res))
     s2.close()
+
+
 def start_server_connection():
     global s
     s.connect((config["server-address"], int(config["server-port"])))
     while True:
-        d=s.recv(1024000).decode('UTF-8')
+        d = s.recv(1024000).decode('UTF-8')
         print(d)
-        data=d.split("|")
-        Thread(target=execute_and_fallbackdata,args=(data,)).start()
+        data = d.split("|")
+        Thread(target=execute_and_fallbackdata, args=(data,)).start()
 
 
 if __name__ == "__main__":
