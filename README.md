@@ -48,25 +48,23 @@ password = "123456"
 
 ```json
 {
-  "version": "1.0.0",
-  "client-name": "xiaodeng-pc_xiaodeng",
-  "local-port": "34567",
+  "config-version": "2",
+  "client-name": "",
   "server-address": "127.0.0.1",
   "server-port": "8631",
   "fallback-server-port": "8632",
-  "startup-message-time": "0"
+  "startup-message": "False"
 }
 ```
 
 | 键                        | 类型      | 备注                           |
 |---------------------------|-----------|--------------------------------|
-| `version`                 | `str`     | 程序版本，请不要修改此项       |
+| `version`                 | `str`     | 配置文件版本，请不要修改此项    |
 | `client-name`             | `str`     | 被控设备用户名                 |
-| `local-port`              | `str`     | 我也不知道这个键是干什么的     |
 | `server-address`          | `str`     | 主控服务器IP                   |
 | `server-port`             | `str`     | 主控端 csr TCP 端口（对应主控端配置`server_port`第一项） |
 | `fallback-server-port`    | `str`     | 主控端 csr 数据回传端口（对应主控端配置`server_port`第二项） |
-| `startup-message-time`    | `str`     | 我也不知道这个键是干什么的     |
+| `startup-message`         | `str`     | 客户端启动时是否显示欢迎信息     |
 
 ### 操作说明
 
