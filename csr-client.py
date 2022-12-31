@@ -11,7 +11,7 @@ import getpass
 import tkinter.messagebox
 import traceback
 
-
+config_version="2"
 def base64encode(string):
     return base64.b64encode(string.encode()).decode()
 
@@ -20,31 +20,31 @@ def base64decode(string):
     return base64.b64decode(string.encode()).decode()
 
 
-start_time = time.time()  # 起始运行时间
+# start_time = time.time()  # 起始运行时间
 
 # 初始化服务器连接配置
 if os.path.exists("config.json"):
     with open("config.json", "r") as config_file:
         config = json.load(config_file)
+    if config["version"]!=config_version:
+        input("配置文件版本不匹配，请删除重新生成")
+        os._exit(0)
 else:
     config = {
-        "version": "1.0.0",
+        "config-version": "2",
         "client-name": f"{socket.gethostname()}_{getpass.getuser()}",
-        "local-port": "34567",
         "server-address": "127.0.0.1",
         "server-port": "8631",
         "fallback-server-port": "8632",
-        "startup-message-time": "0",
+        "startup-message": "False",
     }
     with open("config.json", "w") as config_file:
         json.dump(config, config_file)
-if config["startup-message-time"] != "0":
-    os.system(
-        f'msg %username% /time:{config["startup-message-time"]} "CmdServerReloaded | ClientName: {config["client-name"]} | LocalHTTP: {config["local-port"]} | ConnectToServer: {config["server-address"]}'
-    )
+if config["startup-message"] != "False":
+    tkinter.messagebox.showinfo("CmdServerReloaded",f'ClientName: {config["client-name"]} | LocalHTTP: {config["local-port"]} | ConnectToServer: {config["server-address"]}')
 
 
-# 内置状态显示HTTP服务器
+# 内置状态显示HTTP服务器（弃用）
 class Request(BaseHTTPRequestHandler):
     timeout = 5
     server_version = "Apache"
@@ -69,8 +69,6 @@ RunningTime - {time.time() - start_time}""".replace(
 def start_http_server():
     HTTPServer(("localhost", int(config["local-port"])), Request).serve_forever()
 
-
-Thread(target=start_http_server).start()
 
 # 远程操作函数
 def e_download(url):
