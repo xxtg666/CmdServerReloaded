@@ -48,7 +48,6 @@ if config["startup-message"] != "False":
 class Request(BaseHTTPRequestHandler):
     timeout = 5
     server_version = "Apache"
-
     def do_GET(self):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
@@ -60,7 +59,7 @@ UserName - {getpass.getuser()}
 HttpPort - {config["local-port"]}
 ConnectServer - {config["server-address"]}
 ConnectStatus - {False}
-RunningTime - {time.time() - start_time}""".replace(
+RunningTime - {time.time()}""".replace(
             "\n", "<br>"
         )
         self.wfile.write(buf.encode("gb2312"))
