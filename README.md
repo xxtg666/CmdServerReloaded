@@ -59,7 +59,7 @@ password = "123456"
 
 | 键                        | 类型      | 备注                           |
 |---------------------------|-----------|--------------------------------|
-| `version`                 | `str`     | 配置文件版本，请不要修改此项    |
+| `config-version`                 | `str`     | 配置文件版本，请不要修改此项    |
 | `client-name`             | `str`     | 被控设备用户名                 |
 | `server-address`          | `str`     | 主控服务器IP                   |
 | `server-port`             | `str`     | 主控端 csr TCP 端口（对应主控端配置`server_port`第一项） |
