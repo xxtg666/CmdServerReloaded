@@ -6,8 +6,8 @@
 
 ### 依赖
 
-Python3
-tkinter(linux可能需要手动安装)
+* Python3
+* tkinter(linux可能需要手动安装)
 
 ### 启动方法
 
