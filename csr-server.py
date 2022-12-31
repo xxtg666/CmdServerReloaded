@@ -255,16 +255,21 @@ def start_web_ui():
 def start_fallback_server():
     global fallbacks
     global no_fallback_time
-    s2 = socket.socket()
-    s2.bind(("0.0.0.0", server_port[1]))
-    s2.listen()
     while True:
-        c, addr = s2.accept()
-        d = c.recv(1024000).decode("UTF-8")
-        # print(d)
-        data = d.split("|")
-        no_fallback_time = 0
-        fallbacks[data[0]] = data[1]
+        try:
+            s2 = socket.socket()
+            s2.bind(("0.0.0.0", server_port[1]))
+            s2.listen()
+            while True:
+                c, addr = s2.accept()
+                d = c.recv(1024000).decode("UTF-8")
+                # print(d)
+                data = d.split("|")
+                no_fallback_time = 0
+                fallbacks[data[0]] = data[1]
+        except:
+            print(traceback.format_exc())
+            time.sleep(5)
 
 
 if __name__ == "__main__":

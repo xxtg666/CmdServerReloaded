@@ -26,7 +26,7 @@ def base64decode(string):
 if os.path.exists("config.json"):
     with open("config.json", "r") as config_file:
         config = json.load(config_file)
-    if config["version"]!=config_version:
+    if config["config-version"]!=config_version:
         input("配置文件版本不匹配，请删除重新生成")
         os._exit(0)
 else:
