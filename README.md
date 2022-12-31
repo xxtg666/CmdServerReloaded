@@ -6,8 +6,7 @@
 
 ### 依赖
 
-1. Python3
-2. tkinter(可选)
+Python3
 
 ### 启动方法
 
