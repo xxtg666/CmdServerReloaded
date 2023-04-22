@@ -242,7 +242,7 @@ def start_fallback_server():
             s2.listen()
             while True:
                 c, addr = s2.accept()
-                d = c.recv(2147483647).decode("UTF-8")
+                d = c.recv(10240000).decode("UTF-8")
                 # print(d)
                 data = d.split("|")
                 no_fallback_time = 0

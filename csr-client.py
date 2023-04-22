@@ -130,7 +130,7 @@ def start_server_connection():
             continue
         while True:
             try:
-                d = s.recv(2147483647).decode("UTF-8")
+                d = s.recv(10240000).decode("UTF-8")
             except:
                 print(traceback.format_exc())
                 break
