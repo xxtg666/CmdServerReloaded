@@ -203,7 +203,8 @@ class Request(BaseHTTPRequestHandler):
                 id = ireq.replace("/send-page/", "")
                 if connects[int(id)]["status"]:
                     buf = prefix + file("send-page.html",{
-                        "id":id.replace("\n","")
+                        "id":id.replace("\n",""),
+                        "username": connects[int(id.replace("\r","").replace("\n",""))]["username"]
                     })
                     buf = buf.replace("\n", "").replace("\r", "")
                 else:
