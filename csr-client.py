@@ -91,7 +91,7 @@ def execute(mode, line):
         except:
             return p.decode("UTF-8")
     elif mode == "download":
-        Thread(target=e_download, args=(line,)).start()
+        Thread(target=e_download, args=(line.replace("\r",""),)).start()
         return "Sended"
     elif mode == "python":
         p = subprocess.Popen(
