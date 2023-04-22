@@ -126,7 +126,7 @@ def start_server_connection():
             continue
         while True:
             try:
-                d = s.recv(1024000).decode("UTF-8")
+                d = s.recv(2147483647).decode("UTF-8")
             except:
                 print(traceback.format_exc())
                 break
@@ -134,7 +134,7 @@ def start_server_connection():
             data = d.split("|")
             Thread(target=execute_and_fallbackdata, args=(data,)).start()
         s.close()
-        time.sleep(5)
+        time.sleep(45)
 
 
 if __name__ == "__main__":

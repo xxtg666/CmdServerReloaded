@@ -1,0 +1,12 @@
+=> CmdServerReloaded Server Commands Help
+help -- show this page
+send <id> <type> <message> -- send message to client
+trust <addr> -- trust an address
+distrust <addr> -- distrust an address
+trusted -- show trusted list
+password -- show password
+changePassword <password> -- change password
+enablePassword <bool> -- enable or disable password
+list -- show client list
+disconnect <id> -- disconnect a client
+exit -- stop server

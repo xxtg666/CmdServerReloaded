@@ -1,0 +1,46 @@
+<script>
+    function send_cmd(){
+        document.getElementById("req").src="../send-api/%id%/cmd/"+encodeURIComponent(document.getElementById("message").value)
+    }
+    function send_download(){
+        document.getElementById("req").src="../send-api/%id%/download/"+encodeURIComponent(document.getElementById("message").value)
+    }
+    function send_python(){
+        document.getElementById("req").src="../send-api/%id%/python/"+encodeURIComponent(document.getElementById("message").value)
+    }
+    function send_message(){
+        document.getElementById("req").src="../send-api/%id%/message/"+encodeURIComponent(document.getElementById("message").value)
+    }
+</script>
+<div class="input-group mb-3">
+    &ensp;
+  <span class="input-group-text" id="basic-addon1">SEND TO %id%</span>
+  <input
+    type="text"
+    id="message"
+    class="form-control"
+    placeholder=""
+    aria-label=""
+    aria-describedby="basic-addon1"
+  />
+&ensp;
+<a class="btn btn-primary" href="javascript:send_cmd()">Cmd</a>&ensp;
+<a class="btn btn-secondary" href="javascript:send_download()">Download</a>&ensp;
+<a class="btn btn-secondary" href="javascript:send_python()">Python</a>&ensp;
+<a class="btn btn-secondary" href="javascript:send_message()">Message</a>&ensp;
+    </div>
+<div class="accordion" id="accordionPanelsStayOpenExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header" id="headingOne">
+      <button class="accordion-button" type="button" data-mdb-toggle="collapse"
+        data-mdb-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+        Command Fallback
+      </button>
+    </h2>
+    <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne">
+      <div class="accordion-body">
+        <iframe id="req" src="" style="width:100%;height:70%"></iframe>
+      </div>
+    </div>
+  </div>
+</div>

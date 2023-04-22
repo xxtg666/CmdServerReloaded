@@ -1,6 +1,7 @@
 server_port = [8631, 8632, 34568]
 enable_password = True
 password = "123456"
+
 # TO-DO:log系统
 import socket
 from threading import Thread
@@ -11,6 +12,7 @@ import sys, os
 import traceback
 import random
 import time
+import urllib
 
 
 def base64encode(string):
@@ -33,8 +35,23 @@ n = 0
 connects = []
 trusted = []
 no_fallback_time = 0
-
-
+server_files = {}
+def file(name,mod={}):
+    global server_files
+    DEV_MODE = False # 开发者测试WebUI用
+    if DEV_MODE:
+        with open("csr-server"+os.sep+name, "r", encoding="utf-8") as f:
+            re = f.read()
+    else:
+        try:
+            re = server_files[name]
+        except KeyError:
+            with open("csr-server"+os.sep+name, "r", encoding="utf-8") as f:
+                server_files[name] = f.read()
+        re = server_files[name]
+    for k in list(mod.keys()):
+        re = re.replace(f"%{k}%",str(mod[k]))
+    return re
 def no_fallback_time_count():
     global no_fallback_time
     global fallbacks
@@ -63,20 +80,7 @@ def start_input_thread():
         i = l.split(" ")
         try:
             if i[0] == "help":
-                print(
-                    """=> CmdServerReloaded Server Commands Help
-help -- show this page
-send <id> <type> <message> -- send message to client
-trust <addr> -- trust an address
-distrust <addr> -- distrust an address
-trusted -- show trusted list
-password -- show password
-changePassword <password> -- change password
-enablePassword <bool> -- enable or disable password
-list -- show client list
-disconnect <id> -- disconnect a client
-exit -- stop server"""
-                )
+                print(file("help.txt"))
             elif i[0] == "exit":
                 os._exit(0)
             elif i[0] == "send":
@@ -129,6 +133,8 @@ def start_tcp_server():
                 username = f"""{base64decode(fallbacks[messageid])}""".replace("\n", "")
                 connects[n]["username"] = username
                 break
+            except KeyError:
+                print("Waiting for fallback [" + messageid + "]")
             except:
                 print(traceback.format_exc())
         print(f"{n}{addr}Connected")
@@ -146,63 +152,45 @@ class Request(BaseHTTPRequestHandler):
         self.end_headers()
         req = str(self.raw_requestline, "iso-8859-1")
         ireq = str(req.replace("GET ", "").replace(" HTTP/1.1", "").replace("\n", ""))
-        buf = ireq
+        prefix = file("prefix.html",{
+            "ireq":ireq
+        })
+        buf = ""
         print(ireq)
         print(self.address_string())
         if self.address_string() in trusted or not enable_password:
-            if ireq[0:6] == "/index":
+            if ireq.startswith("/static/"):
+                buf = file(ireq.split("/")[-1].replace("\r",""))
+            elif ireq[0:6] == "/index":
                 v = ""
                 for i in range(len(connects)):
-                    v += f"""<tr><td>{str(i)}</td>
-                    <td>{connects[i]["address"]}</td>
-                    <td>{connects[i]["username"]}</td>
-                    <td>{connects[i]["status"]}</td>
-                    <td><a href="../send-page/{str(i)}"><input type="button" value="Send"></a></td></tr>""".replace(
-                        "\n", ""
-                    )
-                buf = f"""{ireq}<table border="1">
-                    <tr>
-                        <td>ID</td>
-                        <td>Address</td>
-                        <td>Username</td>
-                        <td>Status</td>
-                        <td></td>
-                    </tr>
-                    {v}
-                    </table>""".replace(
-                    "\n", "<br>"
-                )
+                    v += file("index-tr.html",{
+                        "id":i,
+                        "address":connects[i]["address"],
+                        "username":connects[i]["username"],
+                        "status":connects[i]["status"],
+                    }).replace("\n", "")
+                buf = prefix+file("index-table.html",{
+                    "v":v
+                })
             elif ireq[0:11] == "/send-page/":  # /send-page/0
                 id = ireq.replace("/send-page/", "")
                 if connects[int(id)]["status"]:
-                    buf = (
-                        ireq
-                        + """
-                    <select id="type">
-                    <option value="cmd">cmd</option>
-                    <option value="download">download</option>
-                    <option value="python">python</option>
-                    <option value="message">message</option>
-                    </select><input id="message" value="">
-                    <script>
-                    function send(){document.getElementById("req").src="../send-api/"""
-                        + id.replace("\n", "")
-                        + """/"+document.getElementById("type").value+"/"+document.getElementById("message").value}
-                    </script>
-                    <input type="button" onclick="send();" value="Send"><br>
-                    <iframe id="req" src="" style="width:100%;height:90%"></iframe>"""
-                    )
+                    buf = prefix + file("send-page.html",{
+                        "id":id.replace("\n","")
+                    })
                     buf = buf.replace("\n", "").replace("\r", "")
                 else:
-                    buf = ireq + f"""Client {id} Offline."""
+                    buf = prefix + f"""Client {id} Offline."""
 
             elif ireq[0:10] == "/send-api/":  # /send-api/0/message/114514
                 v = ireq.replace("/send-api/", "").split(
                     "/"
                 )  # ['0','message','114514']
+                v[2] = urllib.parse.unquote(v[2])
                 try:
                     messageid = send_message(int(v[0]), v[1], unquote(v[2]))
-                    buf = f"{ireq}Done"
+                    buf = f"Done. NO fallback"
                     for _ in range(20):
                         time.sleep(0.25)
                         try:
@@ -210,15 +198,16 @@ class Request(BaseHTTPRequestHandler):
                                 "\n", "<br>"
                             )
                             break
+                        except KeyError:
+                                print("Waiting for fallback ["+messageid+"]")
                         except:
                             print(traceback.format_exc())
                     # print(fallbacks[messageid])
                 except ConnectionResetError:
                     connects[int(v[0])]["status"] = False
-                    buf = f"""{ireq}Client Offline."""
-
+                    buf = f"""Client Offline."""
             else:
-                buf = ireq + " Nothing is here."
+                buf = prefix + " Nothing is here."
         else:
             if ireq[0:14] == "/password-api/":  # /password-api/123456
                 ipassword = unquote(
@@ -227,25 +216,16 @@ class Request(BaseHTTPRequestHandler):
                     .replace("\r", "")
                 )
                 if ipassword == password:
-                    buf = ireq + """<a href="../index">Verified.</a>"""
+                    buf = prefix + file("password-yes.html")
                     trusted.append(self.address_string())
                 else:
-                    buf = ireq + """<a href="../">Incorrect password.</a>"""
+                    buf = prefix + file("password-no.html")
             else:
-                buf = (
-                    ireq
-                    + """
-                <script>
-                function verify(){
-                window.location.href="../password-api/"+document.getElementById("password").value;}
-                </script>
-                Please Input Password:
-                <input id="password" value="">
-                <input type="button" value="Submit" onclick="verify();">""".replace(
-                        "\n", ""
-                    )
-                )
-        self.wfile.write(buf.encode("gb2312"))
+                buf = prefix + file("password-verify.html").replace("\n", "")
+        try:
+            self.wfile.write(buf.encode("gb2312"))
+        except UnicodeEncodeError:
+            self.wfile.write(buf.encode("utf-8"))
 
 
 def start_web_ui():
@@ -262,7 +242,7 @@ def start_fallback_server():
             s2.listen()
             while True:
                 c, addr = s2.accept()
-                d = c.recv(1024000).decode("UTF-8")
+                d = c.recv(2147483647).decode("UTF-8")
                 # print(d)
                 data = d.split("|")
                 no_fallback_time = 0
