@@ -142,4 +142,5 @@ def start_server_connection():
 
 
 if __name__ == "__main__":
+    os.chdir(os.getcwd())
     Thread(target=start_server_connection).start()

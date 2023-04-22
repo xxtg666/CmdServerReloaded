@@ -43,7 +43,7 @@ connects = []
 trusted = []
 no_fallback_time = 0
 server_files = {}
-def init():
+def init_log():
     try:
         os.mkdir("logs")
     except:
@@ -282,7 +282,8 @@ def start_fallback_server():
 
 
 if __name__ == "__main__":
-    init()
+    os.chdir(os.getcwd())
+    init_log()
     Thread(target=start_tcp_server).start()
     Thread(target=start_input_thread).start()
     Thread(target=start_web_ui).start()
