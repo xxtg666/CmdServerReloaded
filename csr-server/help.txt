@@ -10,3 +10,4 @@ enablePassword <bool> -- enable or disable password
 list -- show client list
 disconnect <id> -- disconnect a client
 exit -- stop server
+restart -- restart server

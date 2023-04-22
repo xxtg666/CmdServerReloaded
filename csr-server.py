@@ -14,18 +14,25 @@ import random
 import time
 import urllib
 
-
 def base64encode(string):
     return base64.b64encode(string.encode()).decode()
-
 
 def base64decode(string):
     return base64.b64decode(string.encode()).decode()
 
+def generateMessageId(length=6):
+    return "".join(random.choices("1234567890qwertyuiopasdfghjklzxcvbnm", k=length))
+def restart_program():
+  python = sys.executable
+  os.execl(python, python, *sys.argv)
 
-def generateMessageId():
-    return "".join(random.choices("1234567890qwertyuiopasdfghjklzxcvbnm", k=6))
-
+def log(m,level="INFO"):
+    if m.startswith("Traceback"):
+        level="ERROR"
+    l = time.strftime("[%H:%M:%S]")+f" [{level}] {m}"
+    print(l)
+    with open("logs/latest.log","a") as f:
+        f.write(l+"\n")
 
 fallbacks = {}
 s = socket.socket()
@@ -36,9 +43,18 @@ connects = []
 trusted = []
 no_fallback_time = 0
 server_files = {}
+def init():
+    try:
+        os.mkdir("logs")
+    except:
+        pass
+    if os.path.exists("logs/latest.log"):
+        os.rename("logs/latest.log",f"logs/latest.{generateMessageId(10)}.log")
+    with open("logs/latest.log","w") as f:
+        f.write("")
 def file(name,mod={}):
     global server_files
-    DEV_MODE = False # 开发者测试WebUI用
+    DEV_MODE = True # 开发者测试WebUI用
     if DEV_MODE:
         with open("csr-server"+os.sep+name, "r", encoding="utf-8") as f:
             re = f.read()
@@ -55,6 +71,7 @@ def file(name,mod={}):
 def no_fallback_time_count():
     global no_fallback_time
     global fallbacks
+    log("no_fallback_time_count started")
     while True:
         no_fallback_time += 1
         if no_fallback_time >= 10:
@@ -75,6 +92,7 @@ def start_input_thread():
     global trusted
     global enable_password
     global connects
+    log("input_thread started")
     while True:
         l = input("> ")
         i = l.split(" ")
@@ -83,6 +101,8 @@ def start_input_thread():
                 print(file("help.txt"))
             elif i[0] == "exit":
                 os._exit(0)
+            elif i[0] == "restart":
+                restart_program()
             elif i[0] == "send":
                 send_message(int(i[1]), i[2], i[3])
                 print("=> message sent to " + i[1])
@@ -121,6 +141,7 @@ def start_tcp_server():
     global n
     global connects
     global s
+    log("tcp_server started")
     while True:
         c, addr = s.accept()
         connects.append(
@@ -134,10 +155,10 @@ def start_tcp_server():
                 connects[n]["username"] = username
                 break
             except KeyError:
-                print("Waiting for fallback [" + messageid + "]")
+                log("Waiting for fallback [" + messageid + "]")
             except:
-                print(traceback.format_exc())
-        print(f"{n}{addr}Connected")
+                log(traceback.format_exc())
+        log(f"{n}{addr}Connected")
         n += 1
 
 
@@ -156,11 +177,16 @@ class Request(BaseHTTPRequestHandler):
             "ireq":ireq
         })
         buf = ""
-        print(ireq)
-        print(self.address_string())
-        if self.address_string() in trusted or not enable_password:
-            if ireq.startswith("/static/"):
-                buf = file(ireq.split("/")[-1].replace("\r",""))
+        log(ireq)
+        log(self.address_string())
+        if ireq.startswith("/static"):
+            buf = file(ireq.split("/")[-1].replace("\r", ""))
+        elif self.address_string() in trusted or not enable_password:
+            if ireq.startswith("/log"):
+                with open("logs/latest.log","r",encoding="utf-8") as f:
+                    buf = f.read().replace("\n\n","\n").replace("\n","<br>")
+            elif ireq.startswith("/restart"):
+                restart_program()
             elif ireq[0:6] == "/index":
                 v = ""
                 for i in range(len(connects)):
@@ -199,9 +225,9 @@ class Request(BaseHTTPRequestHandler):
                             )
                             break
                         except KeyError:
-                                print("Waiting for fallback ["+messageid+"]")
+                                log("Waiting for fallback ["+messageid+"]")
                         except:
-                            print(traceback.format_exc())
+                            log(traceback.format_exc())
                     # print(fallbacks[messageid])
                 except ConnectionResetError:
                     connects[int(v[0])]["status"] = False
@@ -229,12 +255,14 @@ class Request(BaseHTTPRequestHandler):
 
 
 def start_web_ui():
+    log("web_ui started")
     HTTPServer(("0.0.0.0", server_port[2]), Request).serve_forever()
 
 
 def start_fallback_server():
     global fallbacks
     global no_fallback_time
+    log("fallback_server started")
     while True:
         try:
             s2 = socket.socket()
@@ -248,11 +276,12 @@ def start_fallback_server():
                 no_fallback_time = 0
                 fallbacks[data[0]] = data[1]
         except:
-            print(traceback.format_exc())
+            log(traceback.format_exc())
             time.sleep(5)
 
 
 if __name__ == "__main__":
+    init()
     Thread(target=start_tcp_server).start()
     Thread(target=start_input_thread).start()
     Thread(target=start_web_ui).start()
